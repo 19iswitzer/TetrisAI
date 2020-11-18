@@ -399,9 +399,6 @@ class TetrisApp(object):
             if self.gameover:
                 self.center_msg("""Game Over!\nYour score: %d
 Press space to continue""" % self.score)
-                file = open("log.txt",'a')
-                file.write("Score: %d\n" % self.score)
-                file.close()
             else:
                 if self.paused:
                     self.center_msg("Paused")
@@ -429,6 +426,9 @@ Press space to continue""" % self.score)
                     self.quit()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == eval("pygame.K_" + "SPACE"):
+                        file = open("log.txt",'a')
+                        file.write("Score: %d\n" % self.score)
+                        file.close()
                         self.start_game()
                 # elif event.type == pygame.USEREVENT+1:
                 #     self.drop(False)
