@@ -80,6 +80,14 @@ tetris_shapes = [
      [7, 7]]
 ]
 
+# Placement weights (can be adjusted later)
+weights = {
+    "flush" :               10000,      # Stone placement is flush with the surface beneath (good)
+    "full_line" :           1000,     # Stone placement completes a line (very good)
+    "fully_enclosed" :      -1000,   # Stone placement fully encloses an open square (very bad)
+    "partially_enclosed" :  -5000     # Stone placement partially encloses an open square (bad)
+}
+
 def rotate_clockwise(shape):
     return [
         [ shape[y][x] for y in range(len(shape)) ]
@@ -217,7 +225,7 @@ class TetrisApp(object):
                                    self.stone,
                                    (new_x, self.stone_y)):
                 self.stone_x = new_x
-                
+
     def quit(self):
         self.center_msg("Exiting...")
         pygame.display.update()
@@ -270,6 +278,113 @@ class TetrisApp(object):
             self.init_game()
             self.gameover = False
 
+    def determineMove(self):
+        # Things to use:
+        #   - self.move(val) - move the piece left or right
+        #   - rotate_clockwise(stone) - rotate the stone clockwise
+        #   - self.insta_drop() - drop the stone immediately
+        #   - self.next_stone - get the next stone available
+        #   - check_collision(self.board, stone, offset) - check if a stone position is valid
+
+        # A choice will be made by evaluationg check_collision with different stone orientations
+        # and offsets (stone positions). Once a decision is made, you'll call rotate_clockwise
+        # and self.move until the stone is in the desired column and orientation, then call
+        # self.insta_drop and return
+
+        # col, rotations = self.getRandomMove(self.stone) # Random bot
+        col, rotations = self.greedyChoiceMove() # Greedy bot
+        
+        self.move(col - self.stone_x)
+        for _ in range(rotations):
+            self.stone = rotate_clockwise(self.stone)
+        self.insta_drop()
+    
+    def getRandomMove(self, current_stone):
+        ### Return a random column and orientation
+        return rand(0,cols - len(current_stone[0])), rand(0,4)
+
+    def evalGreedyOption(self, stone, coords):
+        ### Use the weights to evaluate a potential stone placement.
+        x, y = coords 
+        val = 0
+        num_flush = 0
+        num_total = 0
+        for dy, row in enumerate(stone):
+            for dx, cell in enumerate(row): 
+                if cell:
+                    num_total += 1
+                try:
+                    if cell > 0 and self.board[y + dy + 1][x + dx]:
+                        num_flush += 1
+                        # val += weights["flush"]
+                        # print(x+dx, y+dy+1, "flush")
+                    elif not self.board[y + dy + 1][x + dx]:
+                        blocked = 0
+                        if x + dx > 0:
+                            if self.board[y + dy + 1][x + dx - 1]:
+                                blocked += 1
+                        else:
+                            blocked += 1
+                        if x + dx + 1 < cols:
+                            if self.board[y + dy + 1][x + dx + 1]:
+                                blocked += 1
+                        else: 
+                            blocked += 1
+                        if blocked == 2:
+                            val += weights["fully_enclosed"]
+                            # print(x+dx, y+dy+1, "fully enclosed")
+                        else:
+                            val += weights["partially_enclosed"]
+                            # print(x+dx, y+dy+1, "partially enclosed")
+                except IndexError:
+                    continue
+                    # num_flush += 1
+                    # val += weights["flush"]
+            full_row = 0
+            for i in range(cols):
+                cont = 1
+                if not self.board[y + dy][i]:
+                    for n in range(len(row)):
+                        if x + n == i and row[n] != 0:
+                            cont = 0
+                    full_row = -1 * cont
+                    if full_row == -1:
+                        break
+            if full_row == 0:
+                val += weights["full_line"] 
+                print(y + dy, "full line")
+        if num_flush == num_total:
+            val += weights["flush"]
+        val += y * 20
+        return val
+
+    def greedyChoiceMove(self):
+        ### Use the weights defined above to evaluate the best move, 
+        ### looking at the board, the current stone, and the next stone.
+        curr_st = self.stone
+        next_st = self.next_stone
+        options = {}
+        for r in range(4):
+            for c in range(cols): # look at every column
+                if check_collision(self.board, curr_st, (c,0)):
+                    continue
+                y = 0
+                while(1):
+                    if check_collision(self.board, curr_st, (c,y)):
+                        y -= 1
+                        break
+                    y += 1
+                num = self.evalGreedyOption(curr_st, (c,y))
+                options[(c,r)] = num
+            curr_st = rotate_clockwise(curr_st) 
+        best = -999999
+        bestAction = (0,0)
+        for key in options:
+            if(options[key] > best):
+                best = options[key]
+                bestAction = key
+        return bestAction
+
     def run(self):
         key_actions = {
             'ESCAPE':   self.quit,
@@ -314,15 +429,33 @@ Press space to continue""" % self.score)
             pygame.display.update()
 
             for event in pygame.event.get():
-                if event.type == pygame.USEREVENT+1:
-                    self.drop(False)
-                elif event.type == pygame.QUIT:
+                if event.type == pygame.QUIT:
                     self.quit()
                 elif event.type == pygame.KEYDOWN:
-                    for key in key_actions:
-                        if event.key == eval("pygame.K_"
-                        +key):
-                            key_actions[key]()
+                    if event.key == eval("pygame.K_" + "SPACE"):
+                        self.start_game()
+                # elif event.type == pygame.USEREVENT+1:
+                #     self.drop(False)
+                # elif event.type == pygame.KEYDOWN:
+                #     for key in key_actions:
+                #         if event.key == eval("pygame.K_"
+                #         +key):
+                #             key_actions[key]()
+            
+            # Ask the AI for a move
+            self.determineMove()
+            print("===================")
+
+            while(1):
+                br = 0
+                dont_burn_my_cpu.tick(maxfps)
+                for event in pygame.event.get():
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == eval("pygame.K_" + "SPACE"):
+                            br = 1
+                            break
+                if br == 1:
+                    break
 
             dont_burn_my_cpu.tick(maxfps)
 
