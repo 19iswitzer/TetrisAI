@@ -82,11 +82,14 @@ tetris_shapes = [
 
 # Placement weights (can be adjusted later)
 weights = {
-    "flush" :               10000,      # Stone placement is flush with the surface beneath (good)
-    "full_line" :           1000,     # Stone placement completes a line (very good)
-    "fully_enclosed" :      -1000,   # Stone placement fully encloses an open square (very bad)
-    "partially_enclosed" :  -5000     # Stone placement partially encloses an open square (bad)
+    "flush" :               10,     # Stone placement is flush with the surface beneath (good)
+    "full_line" :           100,    # Stone placement completes a line (very good)
+    "fully_enclosed" :      -50,    # Stone placement fully encloses an open square (very bad)
+    "partially_enclosed" :  -5      # Stone placement partially encloses an open square (bad)
 }
+
+# Whether or not to require the space key be pressed between moves
+manual = False
 
 def rotate_clockwise(shape):
     return [
@@ -294,68 +297,57 @@ class TetrisApp(object):
         # col, rotations = self.getRandomMove(self.stone) # Random bot
         col, rotations = self.greedyChoiceMove() # Greedy bot
         
-        self.move(col - self.stone_x)
         for _ in range(rotations):
             self.stone = rotate_clockwise(self.stone)
+        self.move(col - self.stone_x)
         self.insta_drop()
     
     def getRandomMove(self, current_stone):
         ### Return a random column and orientation
         return rand(0,cols - len(current_stone[0])), rand(0,4)
 
-    def evalGreedyOption(self, stone, coords):
-        ### Use the weights to evaluate a potential stone placement.
-        x, y = coords 
+    def evalGreedyOption(self, st, coords):
+        x, y = coords
+        count = 0
+        total = 0
         val = 0
-        num_flush = 0
-        num_total = 0
-        for dy, row in enumerate(stone):
-            for dx, cell in enumerate(row): 
-                if cell:
-                    num_total += 1
-                try:
-                    if cell > 0 and self.board[y + dy + 1][x + dx]:
-                        num_flush += 1
-                        # val += weights["flush"]
-                        # print(x+dx, y+dy+1, "flush")
-                    elif not self.board[y + dy + 1][x + dx]:
-                        blocked = 0
-                        if x + dx > 0:
-                            if self.board[y + dy + 1][x + dx - 1]:
-                                blocked += 1
-                        else:
-                            blocked += 1
-                        if x + dx + 1 < cols:
-                            if self.board[y + dy + 1][x + dx + 1]:
-                                blocked += 1
-                        else: 
-                            blocked += 1
-                        if blocked == 2:
-                            val += weights["fully_enclosed"]
-                            # print(x+dx, y+dy+1, "fully enclosed")
-                        else:
-                            val += weights["partially_enclosed"]
-                            # print(x+dx, y+dy+1, "partially enclosed")
-                except IndexError:
+        full_lines = 0
+        for dy in range(len(st)):
+            for dx in range(len(st[0])):
+                if st[dy][dx] == 0:
                     continue
-                    # num_flush += 1
-                    # val += weights["flush"]
-            full_row = 0
-            for i in range(cols):
-                cont = 1
-                if not self.board[y + dy][i]:
-                    for n in range(len(row)):
-                        if x + n == i and row[n] != 0:
-                            cont = 0
-                    full_row = -1 * cont
-                    if full_row == -1:
+                total += 1
+                if y + dy + 1 >= rows:
+                    count += 1
+                else:
+                    if self.board[y + dy + 1][x + dx]:
+                        count += 1
+                    elif dy + 1 < len(st) and st[dy + 1][dx] > 0:
+                        count += 1
+            full = 1
+            for c in range(cols):
+                con = 0
+                for n in range(len(st[0])):
+                    if x + n == c and st[dy][n] > 0:
+                        con = 1
                         break
-            if full_row == 0:
-                val += weights["full_line"] 
-                print(y + dy, "full line")
-        if num_flush == num_total:
+                if con == 1:
+                    continue
+                if self.board[dy][c] == 0:
+                    full = 0
+                    break
+            if full == 1:
+                full_lines += 1
+        val += weights["full_line"] * full_lines
+        # if full_lines > 0:
+            # print("full line",x,y,st)
+        if total == count:
             val += weights["flush"]
-        val += y * 20
+            # print("flush",x,y,st)
+        else:
+            val += weights["fully_enclosed"]
+            # print("enclosed",x,y,st)
+        val += y
         return val
 
     def greedyChoiceMove(self):
@@ -383,6 +375,7 @@ class TetrisApp(object):
             if(options[key] > best):
                 best = options[key]
                 bestAction = key
+        # print("Picked:",bestAction,"for",self.stone)
         return bestAction
 
     def run(self):
@@ -406,6 +399,9 @@ class TetrisApp(object):
             if self.gameover:
                 self.center_msg("""Game Over!\nYour score: %d
 Press space to continue""" % self.score)
+                file = open("log.txt",'a')
+                file.write("Score: %d\n" % self.score)
+                file.close()
             else:
                 if self.paused:
                     self.center_msg("Paused")
@@ -444,9 +440,10 @@ Press space to continue""" % self.score)
             
             # Ask the AI for a move
             self.determineMove()
-            print("===================")
+            
+            # print("===================")
 
-            while(1):
+            while(manual):
                 br = 0
                 dont_burn_my_cpu.tick(maxfps)
                 for event in pygame.event.get():
