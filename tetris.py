@@ -36,6 +36,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+# Original code: https://gist.github.com/silvasur/565419
+
 from random import randrange as rand
 import pygame, sys
 
@@ -84,8 +86,9 @@ tetris_shapes = [
 weights = {
     "flush" :               10,     # Stone placement is flush with the surface beneath (good)
     "full_line" :           100,    # Stone placement completes a line (very good)
-    "fully_enclosed" :      -50,    # Stone placement fully encloses an open square (very bad)
-    "partially_enclosed" :  -5      # Stone placement partially encloses an open square (bad)
+    "fully_enclosed" :      -50,    # Stone placement fully encloses at least one open square (very bad)
+    "multiple_enclosed" :   0,     # Stone placement encloses multiple open squares, weight per square enclosed (very bad)
+    "height" :              1       # Closeness to the bottom of the board (good)
 }
 
 # Whether or not to require the space key be pressed between moves
@@ -312,6 +315,7 @@ class TetrisApp(object):
         total = 0
         val = 0
         full_lines = 0
+        num_enclosed = 0
         for dy in range(len(st)):
             for dx in range(len(st[0])):
                 if st[dy][dx] == 0:
@@ -324,6 +328,11 @@ class TetrisApp(object):
                         count += 1
                     elif dy + 1 < len(st) and st[dy + 1][dx] > 0:
                         count += 1
+                    elif dy == len(st) - 1:
+                        i = 1
+                        while y + dy + i < rows and not self.board[y + dy + i][x + dx]:
+                            num_enclosed += 1
+                            i += 1
             full = 1
             for c in range(cols):
                 con = 0
@@ -347,7 +356,8 @@ class TetrisApp(object):
         else:
             val += weights["fully_enclosed"]
             # print("enclosed",x,y,st)
-        val += y
+        val += y * weights["height"]
+        val += num_enclosed * weights["multiple_enclosed"]
         return val
 
     def greedyChoiceMove(self):
