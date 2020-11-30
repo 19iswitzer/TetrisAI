@@ -38,6 +38,12 @@
 
 # Original code: https://gist.github.com/silvasur/565419
 
+#TESTING GLOBAL VARS FROM ARGS
+Test = False
+Strat = 0
+Outfile = None
+append = None
+
 from random import randrange as rand
 import pygame, sys
 
@@ -96,7 +102,7 @@ weights = {
 }
 
 # Whether or not to require the space key be pressed between moves
-manual = True
+manual = False
 
 # User input or computer bot
 user_input = True
@@ -293,6 +299,7 @@ class TetrisApp(object):
         if self.gameover:
             self.init_game()
             self.gameover = False
+            self.printed = False
 
     def determineMove(self):
         # Things to use:
@@ -499,14 +506,18 @@ class TetrisApp(object):
         }
 
         self.gameover = False
+        self.printed = False
         self.paused = False
 
         dont_burn_my_cpu = pygame.time.Clock()
         while 1:
             self.screen.fill((0,0,0))
             if self.gameover:
+                if Test:
+                    self.outputcsvtest(Strat, Outfile, append, self.score, self.level, self.lines)
                 self.center_msg("""Game Over!\nYour score: %d
 Press space to continue""" % self.score)
+                
             else:
                 if self.paused:
                     self.center_msg("Paused")
@@ -563,7 +574,44 @@ Press space to continue""" % self.score)
                     break
 
             dont_burn_my_cpu.tick(maxfps)
+    def outputcsvtest(self, strategy, outfilename, appending, score, level, lines):
+        if not self.printed:
+            if strategy == 0:
+                strstrat = "Greedy"
+            else:
+                strstrat = "Learning"
+            if appending:
+                f = open(outfilename, 'a')
+            else:
+                f = open(outfilename, 'w')
+                f.write("Strategy,Score,Level,Lines\n")
+            nextEntry = "%s,%s,%s,%s\n"
+            nextEntry = nextEntry % (strstrat,str(score), str(level), str(lines))
+            f.write(nextEntry)
+            self.printed = True
+            f.close()
+
+
+
+
 
 if __name__ == '__main__':
-    App = TetrisApp()
-    App.run()
+    print("Testing args: <strategy select> <outfile name> <append?>")
+    print("strategy select: 0 - greedy, 1 - other")
+    print("outfile name: name of desired output file")
+    print("append outfile? 0 - no, 1 - yes")
+    if len(sys.argv) == 4:
+        Strat = int(sys.argv[1])
+        Outfile = sys.argv[2]
+        append = int(sys.argv[3])
+        if append == 1:
+            append = True
+        else:
+            append = False
+        Test = True
+        App = TetrisApp()
+        App.run()
+        print("Testing with args:" + Strat + " " + Outfile + " " + append)
+    else:
+        App = TetrisApp()
+        App.run()
