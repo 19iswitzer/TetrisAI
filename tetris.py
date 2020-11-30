@@ -82,17 +82,27 @@ tetris_shapes = [
      [7, 7]]
 ]
 
+### When the piece is flush, check if we can move it side to side to fill in gaps
+
 # Placement weights (can be adjusted later)
+
 weights = {
-    "flush" :               10,     # Stone placement is flush with the surface beneath (good)
+    "flush" :               0,      # Stone placement is flush with the surface beneath (good)
     "full_line" :           100,    # Stone placement completes a line (very good)
     "fully_enclosed" :      -50,    # Stone placement fully encloses at least one open square (very bad)
-    "multiple_enclosed" :   0,     # Stone placement encloses multiple open squares, weight per square enclosed (very bad)
-    "height" :              1       # Closeness to the bottom of the board (good)
+    "multiple_enclosed" :   -5,     # Stone placement encloses multiple open squares, weight per square enclosed (very bad)
+    "height" :              1,      # Closeness to the bottom of the board (good)
+    "second_block":         0       # Weight of the next stone
 }
 
 # Whether or not to require the space key be pressed between moves
-manual = False
+manual = True
+
+# User input or computer bot
+user_input = True
+
+# Whether or not to print info
+debug = False
 
 def rotate_clockwise(shape):
     return [
@@ -309,26 +319,36 @@ class TetrisApp(object):
         ### Return a random column and orientation
         return rand(0,cols - len(current_stone[0])), rand(0,4)
 
-    def evalGreedyOption(self, st, coords):
+    def evalGreedyOption(self, st, coords, next_st = None, next_coords = None):
         x, y = coords
         count = 0
         total = 0
         val = 0
         full_lines = 0
         num_enclosed = 0
+        if(debug): print("Coords:",coords,"Stone:",st,"Next Stone:",next_st,"Next Coords:",next_coords)
+
+        # We do not want placements that make us lose
+        if(y <= 0):
+            return -99999999
+
+        # Iterate thru the stone's individual squares
         for dy in range(len(st)):
             for dx in range(len(st[0])):
+                # No square here so skip
                 if st[dy][dx] == 0:
                     continue
+
                 total += 1
-                if y + dy + 1 >= rows:
+                # Check if the piece is flush
+                if y + dy + 1 >= rows: # Square is touching the bottom of the board
                     count += 1
                 else:
-                    if self.board[y + dy + 1][x + dx]:
+                    if self.board[y + dy + 1][x + dx]: # Square is touching a square below
                         count += 1
-                    elif dy + 1 < len(st) and st[dy + 1][dx] > 0:
+                    elif dy + 1 < len(st) and st[dy + 1][dx] > 0: # Square is touching another square from the same piece below
                         count += 1
-                    elif dy == len(st) - 1:
+                    else: #if dy == len(st) - 1: # Not flush, count enclosed squares
                         i = 1
                         while y + dy + i < rows and not self.board[y + dy + i][x + dx]:
                             num_enclosed += 1
@@ -347,37 +367,115 @@ class TetrisApp(object):
                     break
             if full == 1:
                 full_lines += 1
+
         val += weights["full_line"] * full_lines
-        # if full_lines > 0:
-            # print("full line",x,y,st)
         if total == count:
             val += weights["flush"]
-            # print("flush",x,y,st)
         else:
             val += weights["fully_enclosed"]
-            # print("enclosed",x,y,st)
         val += y * weights["height"]
         val += num_enclosed * weights["multiple_enclosed"]
+        if(debug and num_enclosed > 0): print("Num enclosed:",num_enclosed)
+
+        if(next_st == None):
+            return val 
+        
+        x,y = next_coords
+        count = 0
+        total = 0
+        full_lines = 0
+        num_enclosed = 0
+        if(y <= 0):
+            return -99999999
+        
+        for dy in range(len(next_st)):
+            for dx in range(len(next_st[0])):
+                # No square here so skip
+                if next_st[dy][dx] == 0:
+                    continue
+
+                total += 1
+                # Check if the piece is flush
+                if y + dy + 1 >= rows: # Square is touching the bottom of the board
+                    count += 1
+                else:
+                    if self.board[y + dy + 1][x + dx] or (y + dy + 1, x + dx) in [(coords[0] + int(i % len(st[0])),coords[1] + int((i - (i % len(st[0]))) / len(st[0]))) if st[int((i - (i % len(st[0]))) / len(st[0]))][i % len(st[0])] > 0 else None for i in range(len(st) * len(st[0]))]: # Square is touching a square below
+                        count += 1
+                    elif dy + 1 < len(next_st) and next_st[dy + 1][dx] > 0: # Square is touching another square from the same piece below
+                        count += 1
+                    else: #if dy == len(st) - 1: # Not flush, count enclosed squares
+                        i = 1
+                        while y + dy + i < rows and not self.board[y + dy + i][x + dx] and (y + dy + i, x + dx) not in [(coords[0] + int(i % len(st[0])),coords[1] + int((i - (i % len(st[0]))) / len(st[0]))) if st[int((i - (i % len(st[0]))) / len(st[0]))][i % len(st[0])] > 0 else None for i in range(len(st) * len(st[0]))]:
+                            num_enclosed += 1
+                            i += 1
+            full = 1
+            for c in range(cols):
+                con = 0
+                for n in range(len(next_st[0])):
+                    if x + n == c and next_st[dy][n] > 0:
+                        con = 1
+                        break
+                for n in range(len(st[0])):
+                    if coords[0] + n == c and dy < len(st) and st[dy][n] > 0:
+                        con = 1
+                        break 
+                if con == 1:
+                    continue
+                if self.board[dy][c] == 0:
+                    full = 0
+                    break
+            if full == 1:
+                full_lines += 1
+
+        val += weights["full_line"] * full_lines * weights["second_block"]
+        if total == count:
+            val += weights["flush"] * weights["second_block"]
+        else:
+            val += weights["fully_enclosed"] * weights["second_block"]
+        val += y * weights["height"] * weights["second_block"]
+        val += num_enclosed * weights["multiple_enclosed"] * weights["second_block"]
+
         return val
+    
+    def check_overlap(self, st1, st2, c1, c2):
+        return False
 
     def greedyChoiceMove(self):
         ### Use the weights defined above to evaluate the best move, 
         ### looking at the board, the current stone, and the next stone.
+        if(debug): print("================================")
         curr_st = self.stone
         next_st = self.next_stone
         options = {}
-        for r in range(4):
-            for c in range(cols): # look at every column
-                if check_collision(self.board, curr_st, (c,0)):
+        for r1 in range(4):
+            for c1 in range(cols): # look at every column
+                if check_collision(self.board, curr_st, (c1,0)):
                     continue
-                y = 0
+                y1 = 0
                 while(1):
-                    if check_collision(self.board, curr_st, (c,y)):
-                        y -= 1
+                    if check_collision(self.board, curr_st, (c1,y1)):
+                        y1 -= 1
                         break
-                    y += 1
-                num = self.evalGreedyOption(curr_st, (c,y))
-                options[(c,r)] = num
+                    y1 += 1
+                
+                if weights["second_block"] != 0:
+                    for r2 in range(4):
+                        for c2 in range(cols):
+                            if check_collision(self.board, next_st, (c2,0)):
+                                continue
+                            y2 = 0
+                            while(1):
+                                if check_collision(self.board, next_st, (c2,y2)):
+                                    y2 -= 1
+                                    break
+                                y2 += 1
+                            num = self.evalGreedyOption(curr_st, (c1,y1), next_st, (c2,y2))
+                            if (c1,r1) not in options.keys(): options[(c1,r1)] = num 
+                            else: options[(c1,r1)] = max(num, options[(c1,r1)])
+                        next_st = rotate_clockwise(next_st) 
+                else:
+                    num = self.evalGreedyOption(curr_st, (c1,y1), None, None)
+                    options[(c1,r1)] = num 
             curr_st = rotate_clockwise(curr_st) 
         best = -999999
         bestAction = (0,0)
@@ -385,7 +483,7 @@ class TetrisApp(object):
             if(options[key] > best):
                 best = options[key]
                 bestAction = key
-        # print("Picked:",bestAction,"for",self.stone)
+        if(debug): print("Picked:",bestAction,"for",self.stone)
         return bestAction
 
     def run(self):
@@ -440,13 +538,13 @@ Press space to continue""" % self.score)
                         file.write("Score: %d\n" % self.score)
                         file.close()
                         self.start_game()
-                # elif event.type == pygame.USEREVENT+1:
-                #     self.drop(False)
-                # elif event.type == pygame.KEYDOWN:
-                #     for key in key_actions:
-                #         if event.key == eval("pygame.K_"
-                #         +key):
-                #             key_actions[key]()
+                elif user_input and event.type == pygame.USEREVENT+1:
+                    self.drop(False)
+                elif user_input and event.type == pygame.KEYDOWN:
+                    for key in key_actions:
+                        if event.key == eval("pygame.K_"
+                        +key):
+                            key_actions[key]()
             
             # Ask the AI for a move
             self.determineMove()
