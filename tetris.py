@@ -94,11 +94,12 @@ tetris_shapes = [
 
 weights = {
     "flush" :               0,      # Stone placement is flush with the surface beneath (good)
-    "full_line" :           100,    # Stone placement completes a line (very good)
+    "full_line" :           30,    # Stone placement completes a line (very good)
     "fully_enclosed" :      -50,    # Stone placement fully encloses at least one open square (very bad)
-    "multiple_enclosed" :   -5,     # Stone placement encloses multiple open squares, weight per square enclosed (very bad)
+    "multiple_enclosed" :   -10,     # Stone placement encloses multiple open squares, weight per square enclosed (very bad)
     "height" :              1,      # Closeness to the bottom of the board (good)
-    "second_block":         0       # Weight of the next stone
+    "second_block":         0,       # Weight of the next stone
+    "height_spectrum":      0.1         # Value full lines more the higher we are on the board
 }
 
 # Whether or not to require the space key be pressed between moves
@@ -375,7 +376,7 @@ class TetrisApp(object):
             if full == 1:
                 full_lines += 1
 
-        val += weights["full_line"] * full_lines
+        val += weights["full_line"] * full_lines * (rows - y) * weights["height_spectrum"]
         if total == count:
             val += weights["flush"]
         else:
@@ -434,7 +435,7 @@ class TetrisApp(object):
             if full == 1:
                 full_lines += 1
 
-        val += weights["full_line"] * full_lines * weights["second_block"]
+        val += weights["full_line"] * full_lines * weights["second_block"] * (rows - y) * weights["height_spectrum"]
         if total == count:
             val += weights["flush"] * weights["second_block"]
         else:
