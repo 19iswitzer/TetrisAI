@@ -376,7 +376,7 @@ class TetrisApp(object):
             if full == 1:
                 full_lines += 1
 
-        val += weights["full_line"] * full_lines * (rows - y) * weights["height_spectrum"]
+        val += weights["full_line"] * full_lines + full_lines * (rows - y) * weights["height_spectrum"]
         if total == count:
             val += weights["flush"]
         else:
@@ -435,7 +435,7 @@ class TetrisApp(object):
             if full == 1:
                 full_lines += 1
 
-        val += weights["full_line"] * full_lines * weights["second_block"] * (rows - y) * weights["height_spectrum"]
+        val += weights["full_line"] * full_lines * weights["second_block"] + full_lines * (rows - y) * weights["height_spectrum"] * weights["second_block"]
         if total == count:
             val += weights["flush"] * weights["second_block"]
         else:
