@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import csv
 class WeightScoreObj(object): 
     def __init__(self, flush, full_line, fully_enclosed, multiple_enclosed, height, second_block, height_spectrum, score = None): 
