@@ -382,10 +382,12 @@ class TetrisApp(object):
         if total == count:
             val += weights["flush"]
         else:
-            if weights["enclosed_spectrum"] > 0: mult = 1
-            val += weights["fully_enclosed"] + mult * weights["fully_enclosed"] / ((rows - y) * weights["enclosed_spectrum"])
+            if weights["enclosed_spectrum"] > 0: mult = 1 / ((rows - y) * weights["enclosed_spectrum"])
+            val += weights["fully_enclosed"] + mult * weights["fully_enclosed"]
         val += y * weights["height"]
-        val += num_enclosed * weights["multiple_enclosed"] + mult * weights["multiple_enclosed"] / ((rows - y) * weights["enclosed_spectrum"])
+        mult = 0
+        if weights["enclosed_spectrum"] > 0: mult = 1 / ((rows - y) * weights["enclosed_spectrum"])
+        val += num_enclosed * weights["multiple_enclosed"] + mult * weights["multiple_enclosed"]
         if(debug and num_enclosed > 0): print("Num enclosed:",num_enclosed)
 
         if(next_st == None):
@@ -443,10 +445,12 @@ class TetrisApp(object):
         if total == count:
             val += weights["flush"] * weights["second_block"]
         else:
-            if weights["enclosed_spectrum"] > 0: mult = 1
-            val += weights["fully_enclosed"] * weights["second_block"] + mult * weights["second_block"] * weights["fully_enclosed"] / ((rows - y) * weights["enclosed_spectrum"])
+            if weights["enclosed_spectrum"] > 0: mult = 1 / ((rows - y) * weights["enclosed_spectrum"])
+            val += weights["fully_enclosed"] * weights["second_block"] + mult * weights["second_block"] * weights["fully_enclosed"]
         val += y * weights["height"] * weights["second_block"]
-        val += num_enclosed * weights["multiple_enclosed"] * weights["second_block"] + mult * weights["second_block"] * weights["multiple_enclosed"] / ((rows - y) * weights["enclosed_spectrum"])
+        mult = 0
+        if weights["enclosed_spectrum"] > 0: mult = 1 / ((rows - y) * weights["enclosed_spectrum"])
+        val += num_enclosed * weights["multiple_enclosed"] * weights["second_block"] + mult * weights["second_block"] * weights["multiple_enclosed"]
 
         return val
 
