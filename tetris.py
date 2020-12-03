@@ -99,8 +99,7 @@ weights = {
     "multiple_enclosed" :   -10,     # Stone placement encloses multiple open squares, weight per square enclosed (very bad)
     "height" :              1,      # Closeness to the bottom of the board (good)
     "second_block":         0,       # Weight of the next stone
-    "height_spectrum":      0.1,         # Value full lines more the higher we are on the board
-    "enclosed_spectrum":    0.1,        # Value enclosed squares less the higher we are on the board
+    "height_spectrum":      0.1         # Value full lines more the higher we are on the board
 }
 
 # Whether or not to require the space key be pressed between moves
@@ -377,17 +376,13 @@ class TetrisApp(object):
             if full == 1:
                 full_lines += 1
 
-        mult = 0
-        val += weights["full_line"] * full_lines + full_lines * (rows - y) * weights["height_spectrum"]
+        val += weights["full_line"] * full_lines * (rows - y) * weights["height_spectrum"]
         if total == count:
             val += weights["flush"]
         else:
-            if weights["enclosed_spectrum"] > 0: mult = 1 / ((rows - y) * weights["enclosed_spectrum"])
-            val += weights["fully_enclosed"] + mult * weights["fully_enclosed"]
+            val += weights["fully_enclosed"]
         val += y * weights["height"]
-        mult = 0
-        if weights["enclosed_spectrum"] > 0: mult = 1 / ((rows - y) * weights["enclosed_spectrum"])
-        val += num_enclosed * weights["multiple_enclosed"] + mult * weights["multiple_enclosed"]
+        val += num_enclosed * weights["multiple_enclosed"]
         if(debug and num_enclosed > 0): print("Num enclosed:",num_enclosed)
 
         if(next_st == None):
@@ -440,19 +435,18 @@ class TetrisApp(object):
             if full == 1:
                 full_lines += 1
 
-        mult = 0
-        val += weights["full_line"] * full_lines * weights["second_block"] + full_lines * (rows - y) * weights["height_spectrum"] * weights["second_block"]
+        val += weights["full_line"] * full_lines * weights["second_block"] * (rows - y) * weights["height_spectrum"]
         if total == count:
             val += weights["flush"] * weights["second_block"]
         else:
-            if weights["enclosed_spectrum"] > 0: mult = 1 / ((rows - y) * weights["enclosed_spectrum"])
-            val += weights["fully_enclosed"] * weights["second_block"] + mult * weights["second_block"] * weights["fully_enclosed"]
+            val += weights["fully_enclosed"] * weights["second_block"]
         val += y * weights["height"] * weights["second_block"]
-        mult = 0
-        if weights["enclosed_spectrum"] > 0: mult = 1 / ((rows - y) * weights["enclosed_spectrum"])
-        val += num_enclosed * weights["multiple_enclosed"] * weights["second_block"] + mult * weights["second_block"] * weights["multiple_enclosed"]
+        val += num_enclosed * weights["multiple_enclosed"] * weights["second_block"]
 
         return val
+    
+    def check_overlap(self, st1, st2, c1, c2):
+        return False
 
     def greedyChoiceMove(self):
         ### Use the weights defined above to evaluate the best move, 
@@ -547,6 +541,9 @@ Press space to continue""" % self.score)
                         (cols+1,2))
             pygame.display.update()
 
+            if self.gameover and Strat == 1:
+                self.outputWeights(self.score, weights)
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.quit()
@@ -597,9 +594,17 @@ Press space to continue""" % self.score)
             f.write(nextEntry)
             self.printed = True
             f.close()
+            if(appending):
+                self.start_game
+    def outputWeights(self, score, weights):
+        f = open("learningData.txt", 'a')
+        nextEntry = str(score) + ","
+        for a in weights.values:
+            nextEntry + str(a) + ","
+        nextEntry = nextEntry[:-1]
+        f.write(nextEntry)
 
-
-
+    
 
 
 if __name__ == '__main__':
@@ -620,5 +625,6 @@ if __name__ == '__main__':
         App.run()
         print("Testing with args:" + Strat + " " + Outfile + " " + append)
     else:
+        print("Is not Testing")
         App = TetrisApp()
         App.run()
