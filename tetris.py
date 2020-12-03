@@ -640,12 +640,14 @@ if __name__ == '__main__':
     print("strategy select: 0 - greedy, 1 - other")
     print("outfile name: name of desired output file")
     print("append outfile? 0 - no, 1 - yes")
-    if len(sys.argv) == 3:
-        Strat = Learning
+    if len(sys.argv) == 3: #USED FOR LEARNING RUNS - ONE ARG, used to specify file for Aggregated Learning Data
+        Strat = "Learning"
         loadLearningRuntimeWeights()
+        Outfile = sys.argv[1]
         App = TetrisApp()
+        App.run()
 
-    if len(sys.argv) == 4:
+    elif len(sys.argv) == 4:
         Strat = int(sys.argv[1])
         Outfile = sys.argv[2]
         append = int(sys.argv[3])

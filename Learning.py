@@ -20,9 +20,9 @@ class dataStoreList(object):
         self.TestDataObjList = []
     def loadDataFromFile(self, filename):
         f = open(filename, 'r')
-        csvFile = csv.reader(f)
-        for lines in csvFile:
-            self.TestDataObjList.append(self.parseStrLineToTDO(lines))
+        lines = f.readlines()
+        for line in lines:
+            self.TestDataObjList.append(self.parseStrLineToTDO(line))
 
     def parseStrLineToTDO(self, line):
         line = line.strip().split(",")
