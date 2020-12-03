@@ -609,14 +609,41 @@ Press space to continue""" % self.score)
         nextEntry = nextEntry[:-1]
         f.write(nextEntry)
 
-    
-
+def loadLearningRuntimeWeights(){
+    f = open("runtimeWeights.csv", 'r')
+    line = f.read().strip()
+    updateWeights(line)
+}
+def updateWeights(line):
+        line = line.strip().split(",")
+        flush = int(line[0])
+        full_line = int(line[1])
+        fully_enclosed = int(line[2])
+        multiple_enclosed = int(line[3])
+        height = int(line[4])
+        second_block = int(line[5])
+        height_spectrum = int(line[6])
+        enclosed_spectrum = int(line[7])
+        weights["flush"] = flush
+        weights["full_line"] = full_line
+        weights["fully_enclosed"] = fully_enclosed
+        weights["multiple_enclosed"] = multiple_enclosed
+        weights["height"] = height
+        weights["second_block"] = second_block
+        weights["height_spectrum"] = height_spectrum
+        weights["enclosed_spectrum"] = enclosed_spectrum
+        
+        
 
 if __name__ == '__main__':
     print("Testing args: <strategy select> <outfile name> <append?>")
     print("strategy select: 0 - greedy, 1 - other")
     print("outfile name: name of desired output file")
     print("append outfile? 0 - no, 1 - yes")
+    if len(sys.argv) == 3:
+        Strat = Learning
+        App = TetrisApp()
+
     if len(sys.argv) == 4:
         Strat = int(sys.argv[1])
         Outfile = sys.argv[2]

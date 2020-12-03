@@ -20151,3 +20151,9 @@ Score: 3606
 Score: 26069
 Score: 24940
 Score: 17724
+Score: 45615
+Score: 938
+Score: 1455
+Score: 5550
+Score: 5509
+Score: 9457
