@@ -99,7 +99,8 @@ weights = {
     "multiple_enclosed" :   -10,     # Stone placement encloses multiple open squares, weight per square enclosed (very bad)
     "height" :              1,      # Closeness to the bottom of the board (good)
     "second_block":         0,       # Weight of the next stone
-    "height_spectrum":      0.1         # Value full lines more the higher we are on the board
+    "height_spectrum":      0.1,         # Value full lines more the higher we are on the board
+    "enclosed_spectrum":    0.1,        # Value enclosed squares less the higher we are on the board
 }
 
 # Whether or not to require the space key be pressed between moves
@@ -376,13 +377,15 @@ class TetrisApp(object):
             if full == 1:
                 full_lines += 1
 
-        val += weights["full_line"] * full_lines * (rows - y) * weights["height_spectrum"]
+        mult = 1
+        if weights["enclosed_spectrum"] > 0: mult = 1 / ((rows - y) * weights["enclosed_spectrum"])
+        val += weights["full_line"] * full_lines + full_lines * (rows - y) * weights["height_spectrum"]
         if total == count:
             val += weights["flush"]
         else:
-            val += weights["fully_enclosed"]
+            val += weights["fully_enclosed"] * mult 
         val += y * weights["height"]
-        val += num_enclosed * weights["multiple_enclosed"]
+        val += num_enclosed * weights["multiple_enclosed"] * mult
         if(debug and num_enclosed > 0): print("Num enclosed:",num_enclosed)
 
         if(next_st == None):
@@ -435,13 +438,15 @@ class TetrisApp(object):
             if full == 1:
                 full_lines += 1
 
-        val += weights["full_line"] * full_lines * weights["second_block"] * (rows - y) * weights["height_spectrum"]
+        mult = 1
+        if weights["enclosed_spectrum"] > 0: mult = 1 / ((rows - y) * weights["enclosed_spectrum"])
+        val += weights["full_line"] * full_lines * weights["second_block"] + full_lines * (rows - y) * weights["height_spectrum"] * weights["second_block"]
         if total == count:
             val += weights["flush"] * weights["second_block"]
         else:
-            val += weights["fully_enclosed"] * weights["second_block"]
+            val += weights["fully_enclosed"] * weights["second_block"] * mult
         val += y * weights["height"] * weights["second_block"]
-        val += num_enclosed * weights["multiple_enclosed"] * weights["second_block"]
+        val += num_enclosed * weights["multiple_enclosed"] * weights["second_block"] * mult
 
         return val
     

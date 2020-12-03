@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import csv
 class WeightScoreObj(object): 
-    def __init__(self, flush, full_line, fully_enclosed, multiple_enclosed, height, second_block, height_spectrum, score = None): 
+    def __init__(self, flush, full_line, fully_enclosed, multiple_enclosed, height, second_block, height_spectrum, enclosed_spectrum, score = None): 
         self.score = score
         self.flush = flush
         self.full_line = full_line
@@ -10,9 +10,10 @@ class WeightScoreObj(object):
         self.height = height
         self.second_block = second_block
         self.height_spectrum = height_spectrum
+        self.enclosed_spectrum = enclosed_spectrum
     def weightsToCommaSepStr(self):
-        retstr = "%s,%s,%s,%s,%s,%s,%s"
-        return retstr % (self.flush, self.full_line, self.fully_enclosed, self.multiple_enclosed, self.height, self.second_block, self.height_spectrum)
+        retstr = "%s,%s,%s,%s,%s,%s,%s,%s"
+        return retstr % (self.flush, self.full_line, self.fully_enclosed, self.multiple_enclosed, self.height, self.second_block, self.height_spectrum, self.enclosed_spectrum)
     
 class dataStoreList(object):
     def __init__(self):
@@ -32,6 +33,7 @@ class dataStoreList(object):
         height = int(line[4])
         second_block = int(line[5])
         height_spectrum = int(line[6])
+        enclosed_spectrum = int(line[7])
         score = int(line[0])
         return WeightScoreObj(flush, full_line, fully_enclosed, multiple_enclosed, height, second_block, height_spectrum, score)
 
