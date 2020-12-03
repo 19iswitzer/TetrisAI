@@ -609,12 +609,12 @@ Press space to continue""" % self.score)
         nextEntry = nextEntry[:-1]
         f.write(nextEntry)
 
-def loadLearningRuntimeWeights(){
+def loadLearningRuntimeWeights():
     f = open("runtimeWeights.csv", 'r')
     line = f.read().strip()
-    updateWeights(line)
-}
-def updateWeights(line):
+    updateWeightsLearning(line)
+
+def updateWeightsLearning(line):
         line = line.strip().split(",")
         flush = int(line[0])
         full_line = int(line[1])
@@ -642,6 +642,7 @@ if __name__ == '__main__':
     print("append outfile? 0 - no, 1 - yes")
     if len(sys.argv) == 3:
         Strat = Learning
+        loadLearningRuntimeWeights()
         App = TetrisApp()
 
     if len(sys.argv) == 4:
