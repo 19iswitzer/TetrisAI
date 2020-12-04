@@ -44,6 +44,8 @@ Strat = 0
 Outfile = None
 append = None
 
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 from random import randrange as rand
 import pygame, sys
 
