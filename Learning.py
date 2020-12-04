@@ -61,4 +61,6 @@ def writeRuntimeWeightsToFile(weightStoreObj): # FORMAT: flush, full_line, fully
     f = open("runtimeWeights.csv", "w")
     f.write(weightStoreObj.weightsToCommaSepStr())
 
-runOnce()
+humanFoundBestWeights = WeightScoreObj(0,30,-50,-10,1,0,0.1,0.1)
+
+runNTimesWithWeight(30, humanFoundBestWeights)
