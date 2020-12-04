@@ -189,7 +189,7 @@ tetris = controlTetris_lib()
 dataFileName = "learningDataFile.csv"
 dataFileLib.clearDataFile(dataFileName)
 weights = WeightScoreObj(0,0,0,0,0,0,0,0)
-for i in range(10):
+for i in range(50):
     print("pass: " + str(i))
     print(weights.weightsToCommaSepStr())  # 0.5 = learning const, 5 = number trials for each weights
     weights = optimizeWeightsOnePassRandom(dataFileLib, tetris, dataFileName, 0.5, weights, 5) 
