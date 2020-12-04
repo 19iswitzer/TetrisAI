@@ -14,22 +14,40 @@ class WeightScoreObj(object):
     def weightsToCommaSepStr(self):
         retstr = "%s,%s,%s,%s,%s,%s,%s,%s"
         return retstr % (self.flush, self.full_line, self.fully_enclosed, self.multiple_enclosed, self.height, self.second_block, self.height_spectrum, self.enclosed_spectrum)
+    def toString(self):
+        s = ""
+        s += str(self.score) + ","
+        s += str(self.flush) + ","
+        s += str(self.full_line) + ","
+        s += str(self.fully_enclosed) + ","
+        s += str(self.multiple_enclosed) + ","
+        s += str(self.height) + ","
+        s += str(self.second_block) + ","
+        s += str(self.height_spectrum) + ","
+        s += str(self.enclosed_spectrum)
     
 class dataStoreList(object):
+
+    def __init__(self, internalList):
+        self.internalList = internalList
 
     def getAvgScore(self):
         totalSum = 0
         for n in self.internalList:
             totalSum += n.score
         return totalSum / len(self.internalList)
+    
+    def print(self):
+        for n in self.internalList:
+            print(n.toString())
 
 
 class controlTetris_lib(object): #just has funcs, no data storages 
 
     def runNTimesWithWeightRecordToFilename(self, N, WeightScoreObj, filename):
-        writeRuntimeWeightsToFile(WeightScoreObj)
+        self.writeNewRuntimeWeightsToFile(WeightScoreObj)
         for i in range(N):
-            runOnce(filename)
+            self.runOnce(filename)
     
     def runOnce(self, fileToWriteTo):
         os.system("py tetris.py " + fileToWriteTo)
@@ -47,30 +65,36 @@ class fileData_Lib(object):
         f = open(filename, 'r')
         lines = f.readlines()
         for line in lines:
-            retList.append(self.getFileDataListHelper(line))
+            line = line.strip()
+            wso = self.getFileDataListHelper(line)
+            retList.append(wso)
         if len(retList) == 0:
-            print("getFileDataList of " + filename + "read no data\n")
-        return retList
+            print("getFileDataList of " + filename + "read no data")
 
-    def inithelper(self, line):
+        ret_FDLIST = dataStoreList(retList)
+        return ret_FDLIST
+
+    def getFileDataListHelper(self, line):
         line = line.strip().split(",")
-        flush = int(line[0])
-        full_line = int(line[1])
-        fully_enclosed = int(line[2])
-        multiple_enclosed = int(line[3])
-        height = int(line[4])
-        second_block = int(line[5])
-        height_spectrum = int(line[6])
-        enclosed_spectrum = int(line[7])
+        flush = float(line[1])
+        full_line = float(line[2])
+        fully_enclosed = float(line[3])
+        multiple_enclosed = float(line[4])
+        height = float(line[5])
+        second_block = float(line[6])
+        height_spectrum = float(line[7])
+        enclosed_spectrum = float(line[8])
         score = int(line[0])
-        return WeightScoreObj(flush, full_line, fully_enclosed, multiple_enclosed, height, second_block, height_spectrum, score)
+        ret = WeightScoreObj(flush, full_line, fully_enclosed, multiple_enclosed, height, second_block, height_spectrum, enclosed_spectrum, score)
+        print(ret.toString())
+        return ret
     
     def clearDataFile(self, filename):
         open(filename, 'w').close()
 
 
-def runNTimesWithWeightAndGetAvgScore(N,weights, dataFileLib, dataFileName, tetris)
-    clearDataFile(dataFileName)
+def runNTimesWithWeightAndGetAvgScore(N,weights, dataFileLib, dataFileName, tetris):
+    dataFileLib.clearDataFile(dataFileName)
     tetris.runNTimesWithWeightRecordToFilename(5, weights, dataFileName)
     AdataStoreList = dataFileLib.getFileDataList(dataFileName)
     avg = AdataStoreList.getAvgScore()
@@ -119,17 +143,25 @@ def optimizeWeightsOnePass(dataFileLib, tetris, dataFileName, learningConstant, 
         weights.enclosed_spectrum -= (learningConstant * 2)
     return weights
 
+
+'''
 dataFileLib = fileData_Lib()
 tetris = controlTetris_lib()
 dataFileName = "learningDataFile.csv"
-clearDataFile(dataFileName)
+dataFileLib.clearDataFile(dataFileName)
 weights = WeightScoreObj(0,0,0,0,0,0,0,0)
 for i in range(10):
-    weights = optimizeWeightsOnePass(dataFileName, tetris, dataFileName, 0.5, weights, 5) #not gonna stay 5
+    weights = optimizeWeightsOnePass(dataFileLib, tetris, dataFileName, 0.5, weights, 5) #not gonna stay 5
 
-print("optimum weights computed, running with them now\n")
+print("optimum weights computed, running with them now")
 tetris.writeNewRuntimeWeightsToFile(weights)
 tetris.runOnce(dataFileName)
+'''
+dataFileLib = fileData_Lib()
+dataFileName = "learningDataFile.csv"
+AdataStoreList = dataFileLib.getFileDataList(dataFileName)
+AdataStoreList.print()
+avg = AdataStoreList.getAvgScore()
 
 
 
