@@ -69,6 +69,12 @@ class fileData_Lib(object):
         open(filename, 'w').close()
 
 
+dataFileLib = fileData_Lib()
+tetris = controlTetris_lib()
+dataFileName = "learningDataFile.csv"
+clearDataFile(dataFileName)
+startWeights = WeightScoreObj(0,0,0,0,0,0,0,0)
+tetris.writeNewRuntimeWeightsToFile(startWeights)
 
 
 
@@ -79,11 +85,5 @@ class fileData_Lib(object):
 
 
 
-
-
-print(getAvgScoreFromFile())
-humanFoundBestWeights = WeightScoreObj(0,30,-50,-10,1,0,0.1,0.1)
-clearLearningFile()
-runNTimesWithWeight(3, humanFoundBestWeights)
 
 
