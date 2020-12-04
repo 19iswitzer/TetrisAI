@@ -69,13 +69,67 @@ class fileData_Lib(object):
         open(filename, 'w').close()
 
 
+def runNTimesWithWeightAndGetAvgScore(N,weights, dataFileLib, dataFileName, tetris)
+    clearDataFile(dataFileName)
+    tetris.runNTimesWithWeightRecordToFilename(5, weights, dataFileName)
+    AdataStoreList = dataFileLib.getFileDataList(dataFileName)
+    avg = AdataStoreList.getAvgScore()
+    return avg
+
+def optimizeWeightsOnePass(dataFileLib, tetris, dataFileName, learningConstant, weights, num_trials):
+    firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    weights.flush += learningConstant
+    secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    if secondAvg < firstAvg:
+        weights.flush -= (learningConstant * 2)
+    firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    weights.full_line += learningConstant
+    secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    if secondAvg < firstAvg:
+        weights.full_line -= (learningConstant * 2)
+    firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    weights.fully_enclosed += learningConstant
+    secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    if secondAvg < firstAvg:
+        weights.fully_enclosed -= (learningConstant * 2)
+    firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    weights.multiple_enclosed += learningConstant
+    secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    if secondAvg < firstAvg:
+        weights.multiple_enclosed -= (learningConstant * 2)
+    firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    weights.height += learningConstant
+    secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    if secondAvg < firstAvg:
+        weights.height -= (learningConstant * 2)
+    firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    weights.second_block += learningConstant
+    secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    if secondAvg < firstAvg:
+        weights.second_block -= (learningConstant * 2)
+    firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    weights.height_spectrum += learningConstant
+    secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    if secondAvg < firstAvg:
+        weights.height_spectrum -= (learningConstant * 2)
+    firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    weights.enclosed_spectrum += learningConstant
+    secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+    if secondAvg < firstAvg:
+        weights.enclosed_spectrum -= (learningConstant * 2)
+    return weights
+
 dataFileLib = fileData_Lib()
 tetris = controlTetris_lib()
 dataFileName = "learningDataFile.csv"
 clearDataFile(dataFileName)
-startWeights = WeightScoreObj(0,0,0,0,0,0,0,0)
-tetris.writeNewRuntimeWeightsToFile(startWeights)
+weights = WeightScoreObj(0,0,0,0,0,0,0,0)
+for i in range(10):
+    weights = optimizeWeightsOnePass(dataFileName, tetris, dataFileName, 0.5, weights, 5) #not gonna stay 5
 
+print("optimum weights computed, running with them now\n")
+tetris.writeNewRuntimeWeightsToFile(weights)
+tetris.runOnce(dataFileName)
 
 
 
