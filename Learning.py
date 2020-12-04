@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import csv
+import os
 class WeightScoreObj(object): 
     def __init__(self, flush, full_line, fully_enclosed, multiple_enclosed, height, second_block, height_spectrum, enclosed_spectrum, score = None): 
         self.score = score
@@ -39,9 +39,10 @@ class dataStoreList(object):
 
 
 
-def runNTimesAndReEval(N):
-    print("UNIMPLEMENTED")
-
+def runNTimesWithWeight(N, WeightScoreObj):
+    writeRuntimeWeightsToFile(WeightScoreObj)
+    for i in range(N):
+        runOnce()
 
 
 #runs one test of tetris game.  Tetris game should run by using specified weights that have been written to a file, runtimeWeights.csv
@@ -50,7 +51,7 @@ def runNTimesAndReEval(N):
 #should make this simpler and easier
 #At the end of run, tetris should write to a file and exit
 def runOnce():
-    print("UNIMPLEMENTED")
+    os.system("py tetris.py learningDataFile.csv")
 
 
 """
@@ -59,3 +60,5 @@ write weights that tetris.py will pull from when it is running in learning mode
 def writeRuntimeWeightsToFile(weightStoreObj): # FORMAT: flush, full_line, fully_enclosed, multiple_enclosed, height, second_block, height_spectrum, score
     f = open("runtimeWeights.csv", "w")
     f.write(weightStoreObj.weightsToCommaSepStr())
+
+runOnce()
