@@ -547,7 +547,8 @@ Press space to continue""" % self.score)
             pygame.display.update()
 
             if self.gameover and Strat == 1:
-                self.outputWeights(self.score, weights)
+                self.outputWeightsAndScore(self.score, weights)
+                self.quit()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -601,12 +602,13 @@ Press space to continue""" % self.score)
             f.close()
             if(appending):
                 self.start_game
-    def outputWeights(self, score, weights):
-        f = open("learningData.txt", 'a')
+    def outputWeightsAndScore(self, score, weights):
+        f = open(Outfile, 'a')
         nextEntry = str(score) + ","
-        for a in weights.values:
-            nextEntry + str(a) + ","
+        for a in weights.values():
+            nextEntry = nextEntry + str(a) + ","
         nextEntry = nextEntry[:-1]
+        nextEntry += "\n"
         f.write(nextEntry)
 
 def loadLearningRuntimeWeights():
@@ -616,14 +618,14 @@ def loadLearningRuntimeWeights():
 
 def updateWeightsLearning(line):
         line = line.strip().split(",")
-        flush = int(line[0])
-        full_line = int(line[1])
-        fully_enclosed = int(line[2])
-        multiple_enclosed = int(line[3])
-        height = int(line[4])
-        second_block = int(line[5])
-        height_spectrum = int(line[6])
-        enclosed_spectrum = int(line[7])
+        flush = float(line[0])
+        full_line = float(line[1])
+        fully_enclosed = float(line[2])
+        multiple_enclosed = float(line[3])
+        height = float(line[4])
+        second_block = float(line[5])
+        height_spectrum = float(line[6])
+        enclosed_spectrum = float(line[7])
         weights["flush"] = flush
         weights["full_line"] = full_line
         weights["fully_enclosed"] = fully_enclosed
@@ -640,10 +642,12 @@ if __name__ == '__main__':
     print("strategy select: 0 - greedy, 1 - other")
     print("outfile name: name of desired output file")
     print("append outfile? 0 - no, 1 - yes")
-    if len(sys.argv) == 3: #USED FOR LEARNING RUNS - ONE ARG, used to specify file for Aggregated Learning Data
+    if len(sys.argv) == 2: #USED FOR LEARNING RUNS - ONE ARG, used to specify file for Aggregated Learning Data
         Strat = "Learning"
         loadLearningRuntimeWeights()
         Outfile = sys.argv[1]
+        Test = False
+        Strat = 1
         App = TetrisApp()
         App.run()
 
