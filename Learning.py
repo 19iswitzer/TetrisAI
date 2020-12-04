@@ -140,8 +140,8 @@ dataFileLib.clearDataFile(dataFileName)
 weights = WeightScoreObj(0,0,0,0,0,0,0,0)
 for i in range(10):
     print("pass: " + str(i))
-    print(weights.weightsToCommaSepStr())
-    weights = optimizeWeightsOnePass(dataFileLib, tetris, dataFileName, 0.5, weights, 5) #not gonna stay 5
+    print(weights.weightsToCommaSepStr())  # 0.5 = learning const, 5 = number trials for each weights
+    weights = optimizeWeightsOnePass(dataFileLib, tetris, dataFileName, 0.5, weights, 5) 
 print("optimum weights computed, running with them now")
 print("optimum Weights:")
 print(weights.weightsToCommaSepStr())
