@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 class WeightScoreObj(object): 
-    def __init__(self, flush, full_line, fully_enclosed, multiple_enclosed, height, second_block, height_spectrum, enclosed_spectrum, score = None): 
+    def __init__(self, flush, full_line, fully_enclosed, multiple_enclosed, height, second_block, height_spectrum, enclosed_spectrum, score=None):
         self.score = score
         self.flush = flush
         self.full_line = full_line
@@ -14,17 +14,6 @@ class WeightScoreObj(object):
     def weightsToCommaSepStr(self):
         retstr = "%s,%s,%s,%s,%s,%s,%s,%s"
         return retstr % (self.flush, self.full_line, self.fully_enclosed, self.multiple_enclosed, self.height, self.second_block, self.height_spectrum, self.enclosed_spectrum)
-    def toString(self):
-        s = ""
-        s += str(self.score) + ","
-        s += str(self.flush) + ","
-        s += str(self.full_line) + ","
-        s += str(self.fully_enclosed) + ","
-        s += str(self.multiple_enclosed) + ","
-        s += str(self.height) + ","
-        s += str(self.second_block) + ","
-        s += str(self.height_spectrum) + ","
-        s += str(self.enclosed_spectrum)
     
 class dataStoreList(object):
 
@@ -39,7 +28,7 @@ class dataStoreList(object):
     
     def print(self):
         for n in self.internalList:
-            print(n.toString())
+            print(n.weightsToCommaSepStr())
 
 
 class controlTetris_lib(object): #just has funcs, no data storages 
@@ -86,7 +75,6 @@ class fileData_Lib(object):
         enclosed_spectrum = float(line[8])
         score = int(line[0])
         ret = WeightScoreObj(flush, full_line, fully_enclosed, multiple_enclosed, height, second_block, height_spectrum, enclosed_spectrum, score)
-        print(ret.toString())
         return ret
     
     def clearDataFile(self, filename):
@@ -144,24 +132,21 @@ def optimizeWeightsOnePass(dataFileLib, tetris, dataFileName, learningConstant, 
     return weights
 
 
-'''
+
 dataFileLib = fileData_Lib()
 tetris = controlTetris_lib()
 dataFileName = "learningDataFile.csv"
 dataFileLib.clearDataFile(dataFileName)
 weights = WeightScoreObj(0,0,0,0,0,0,0,0)
 for i in range(10):
+    print(weights.weightsToCommaSepStr())
     weights = optimizeWeightsOnePass(dataFileLib, tetris, dataFileName, 0.5, weights, 5) #not gonna stay 5
-
 print("optimum weights computed, running with them now")
+print("optimum Weights:")
+print(weights.weightsToCommaSepStr())
 tetris.writeNewRuntimeWeightsToFile(weights)
 tetris.runOnce(dataFileName)
-'''
-dataFileLib = fileData_Lib()
-dataFileName = "learningDataFile.csv"
-AdataStoreList = dataFileLib.getFileDataList(dataFileName)
-AdataStoreList.print()
-avg = AdataStoreList.getAvgScore()
+
 
 
 

@@ -638,10 +638,6 @@ def updateWeightsLearning(line):
         
 
 if __name__ == '__main__':
-    print("Testing args: <strategy select> <outfile name> <append?>")
-    print("strategy select: 0 - greedy, 1 - other")
-    print("outfile name: name of desired output file")
-    print("append outfile? 0 - no, 1 - yes")
     if len(sys.argv) == 2: #USED FOR LEARNING RUNS - ONE ARG, used to specify file for Aggregated Learning Data
         Strat = "Learning"
         loadLearningRuntimeWeights()
