@@ -53,6 +53,9 @@ def runNTimesWithWeight(N, WeightScoreObj):
 def runOnce():
     os.system("py tetris.py learningDataFile.csv")
 
+def clearLearningFile():
+    open('learningDataFile.csv', 'w').close()
+
 
 """
 write weights that tetris.py will pull from when it is running in learning mode
@@ -63,4 +66,5 @@ def writeRuntimeWeightsToFile(weightStoreObj): # FORMAT: flush, full_line, fully
 
 humanFoundBestWeights = WeightScoreObj(0,30,-50,-10,1,0,0.1,0.1)
 
-runNTimesWithWeight(30, humanFoundBestWeights)
+runNTimesWithWeight(3, humanFoundBestWeights)
+clearLearningFile()
