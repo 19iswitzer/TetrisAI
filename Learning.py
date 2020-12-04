@@ -16,15 +16,43 @@ class WeightScoreObj(object):
         return retstr % (self.flush, self.full_line, self.fully_enclosed, self.multiple_enclosed, self.height, self.second_block, self.height_spectrum, self.enclosed_spectrum)
     
 class dataStoreList(object):
-    def __init__(self):
-        self.TestDataObjList = []
-    def loadDataFromFile(self, filename):
+
+    def getAvgScore(self):
+        totalSum = 0
+        for n in self.internalList:
+            totalSum += n.score
+        return totalSum / len(self.internalList)
+
+
+class controlTetris_lib(object): #just has funcs, no data storages 
+
+    def runNTimesWithWeightRecordToFilename(self, N, WeightScoreObj, filename):
+        writeRuntimeWeightsToFile(WeightScoreObj)
+        for i in range(N):
+            runOnce(filename)
+    
+    def runOnce(self, fileToWriteTo):
+        os.system("py tetris.py " + fileToWriteTo)
+
+    
+    #changes the weights that tetris will use in next run if in learning mode
+    def writeNewRuntimeWeightsToFile(self,  weightStoreObj): # FORMAT: flush, full_line, fully_enclosed, multiple_enclosed, height, second_block, height_spectrum, score
+        f = open("runtimeWeights.csv", "w")
+        f.write(weightStoreObj.weightsToCommaSepStr())
+
+class fileData_Lib(object):
+
+    def getFileDataList(self, filename):
+        retList = []
         f = open(filename, 'r')
         lines = f.readlines()
         for line in lines:
-            self.TestDataObjList.append(self.parseStrLineToTDO(line))
+            retList.append(self.getFileDataListHelper(line))
+        if len(retList) == 0:
+            print("getFileDataList of " + filename + "read no data\n")
+        return retList
 
-    def parseStrLineToTDO(self, line):
+    def inithelper(self, line):
         line = line.strip().split(",")
         flush = int(line[0])
         full_line = int(line[1])
@@ -36,46 +64,20 @@ class dataStoreList(object):
         enclosed_spectrum = int(line[7])
         score = int(line[0])
         return WeightScoreObj(flush, full_line, fully_enclosed, multiple_enclosed, height, second_block, height_spectrum, score)
+    
+    def clearDataFile(self, filename):
+        open(filename, 'w').close()
 
 
 
-def runNTimesWithWeight(N, WeightScoreObj):
-    writeRuntimeWeightsToFile(WeightScoreObj)
-    for i in range(N):
-        runOnce()
 
 
-#runs one test of tetris game.  Tetris game should run by using specified weights that have been written to a file, runtimeWeights.csv
-#Tetris.py should be run with os.system
-#Tetris.py is yet to be configured for this properly yet, but after playing around with it a few days ago, having tetris.py ran once for each game
-#should make this simpler and easier
-#At the end of run, tetris should write to a file and exit
-def runOnce():
-    os.system("py tetris.py learningDataFile.csv")
-
-def clearLearningFile():
-    open('learningDataFile.csv', 'w').close()
-
-def getAvgScoreFromFile():
-    totalSum = 0
-    countLines = 0
-    f = open('learningDataFile.csv', 'r')
-    lines = f.readlines()
-    for line in lines:
-        splitted = line.strip().split(',')
-        totalSum += int(splitted[0])
-        countLines += 1
-    if countLines == 0:
-        return 0
-    return totalSum / countLines
 
 
-"""
-write weights that tetris.py will pull from when it is running in learning mode
-"""
-def writeRuntimeWeightsToFile(weightStoreObj): # FORMAT: flush, full_line, fully_enclosed, multiple_enclosed, height, second_block, height_spectrum, score
-    f = open("runtimeWeights.csv", "w")
-    f.write(weightStoreObj.weightsToCommaSepStr())
+
+
+
+
 
 
 
