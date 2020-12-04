@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import random
 import os
 class WeightScoreObj(object): 
     def __init__(self, flush, full_line, fully_enclosed, multiple_enclosed, height, second_block, height_spectrum, enclosed_spectrum, score=None):
@@ -131,7 +132,57 @@ def optimizeWeightsOnePass(dataFileLib, tetris, dataFileName, learningConstant, 
         weights.enclosed_spectrum -= (learningConstant * 2)
     return weights
 
-
+def optimizeWeightsOnePassRandom(dataFileLib, tetris, dataFileName, learningConstant, weights, num_trials):
+    weightNum = random.randrange(8)
+    if weightNum == 0:
+        firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        weights.flush += learningConstant
+        secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        if secondAvg < firstAvg:
+            weights.flush -= (learningConstant * 2)
+    elif weightNum == 1:
+        firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        weights.full_line += learningConstant
+        secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        if secondAvg < firstAvg:
+            weights.full_line -= (learningConstant * 2)
+    elif weightNum == 2:
+        firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        weights.fully_enclosed += learningConstant
+        secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        if secondAvg < firstAvg:
+            weights.fully_enclosed -= (learningConstant * 2)
+    elif weightNum == 3:
+        firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        weights.multiple_enclosed += learningConstant
+        secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        if secondAvg < firstAvg:
+            weights.multiple_enclosed -= (learningConstant * 2)
+    elif weightNum == 4:
+        firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        weights.height += learningConstant
+        secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        if secondAvg < firstAvg:
+            weights.height -= (learningConstant * 2)
+    elif weightNum == 5:
+        firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        weights.second_block += learningConstant
+        secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        if secondAvg < firstAvg:
+            weights.second_block -= (learningConstant * 2)
+    elif weightNum == 6:
+        firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        weights.height_spectrum += learningConstant
+        secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        if secondAvg < firstAvg:
+            weights.height_spectrum -= (learningConstant * 2)
+    else:
+        firstAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        weights.enclosed_spectrum += learningConstant
+        secondAvg = runNTimesWithWeightAndGetAvgScore(num_trials, weights, dataFileLib, dataFileName, tetris)
+        if secondAvg < firstAvg:
+            weights.enclosed_spectrum -= (learningConstant * 2)
+    return weights
 
 dataFileLib = fileData_Lib()
 tetris = controlTetris_lib()
@@ -141,7 +192,7 @@ weights = WeightScoreObj(0,0,0,0,0,0,0,0)
 for i in range(10):
     print("pass: " + str(i))
     print(weights.weightsToCommaSepStr())  # 0.5 = learning const, 5 = number trials for each weights
-    weights = optimizeWeightsOnePass(dataFileLib, tetris, dataFileName, 0.5, weights, 5) 
+    weights = optimizeWeightsOnePassRandom(dataFileLib, tetris, dataFileName, 0.5, weights, 5) 
 print("optimum weights computed, running with them now")
 print("optimum Weights:")
 print(weights.weightsToCommaSepStr())
