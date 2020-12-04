@@ -56,6 +56,19 @@ def runOnce():
 def clearLearningFile():
     open('learningDataFile.csv', 'w').close()
 
+def getAvgScoreFromFile():
+    totalSum = 0
+    countLines = 0
+    f = open('learningDataFile.csv', 'r')
+    lines = f.readlines()
+    for line in lines:
+        splitted = line.strip().split(',')
+        totalSum += int(splitted[0])
+        countLines += 1
+    if countLines == 0:
+        return 0
+    return totalSum / countLines
+
 
 """
 write weights that tetris.py will pull from when it is running in learning mode
@@ -64,7 +77,11 @@ def writeRuntimeWeightsToFile(weightStoreObj): # FORMAT: flush, full_line, fully
     f = open("runtimeWeights.csv", "w")
     f.write(weightStoreObj.weightsToCommaSepStr())
 
-humanFoundBestWeights = WeightScoreObj(0,30,-50,-10,1,0,0.1,0.1)
 
-runNTimesWithWeight(3, humanFoundBestWeights)
+
+print(getAvgScoreFromFile())
+humanFoundBestWeights = WeightScoreObj(0,30,-50,-10,1,0,0.1,0.1)
 clearLearningFile()
+runNTimesWithWeight(3, humanFoundBestWeights)
+
+
