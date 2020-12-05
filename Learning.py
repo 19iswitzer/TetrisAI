@@ -184,6 +184,8 @@ def optimizeWeightsOnePassRandom(dataFileLib, tetris, dataFileName, learningCons
             weights.enclosed_spectrum -= (learningConstant * 2)
     return weights
 
+
+
 dataFileLib = fileData_Lib()
 tetris = controlTetris_lib()
 dataFileName = "learningDataFile.csv"
@@ -198,6 +200,9 @@ print("optimum Weights:")
 print(weights.weightsToCommaSepStr())
 tetris.writeNewRuntimeWeightsToFile(weights)
 tetris.runOnce(dataFileName)
+
+
+
 
 
 
